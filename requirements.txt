@@ -1,0 +1,26 @@
+# ---- Phase 1: schema extraction + embeddings (via HF Inference API) + FAISS ----
+SQLAlchemy>=2.0
+PyMySQL>=1.1          # free, pure-python MySQL driver
+requests>=2.31         # HTTP client for the HuggingFace Inference API (embeddings + LLM)
+python-dotenv>=1.0     # loads .env into the environment (config/settings.py)
+faiss-cpu>=1.8         # local vector index only -- no model weights, just similarity search
+numpy>=1.26
+pytest>=8.0
+
+# NOTE: sentence-transformers / torch are intentionally NOT listed.
+# Embeddings are generated via the HF Inference API (embeddings/embedder.py),
+# never downloaded or run locally. Same will be true for the SQL-generation
+# LLM in Phase 2 (Qwen2.5-Coder / Phi-3-mini called via API, not loaded
+# with `transformers`).
+
+# ---- Later phases (uncomment as they're built) ----
+# fastapi>=0.111
+# uvicorn>=0.30
+# streamlit>=1.35
+# langgraph>=0.1
+# langchain>=0.2
+# huggingface-hub>=0.24    # convenience client for the Inference API (LLM calls)
+# sqlglot>=25.0        # SQL parsing/validation
+# plotly>=5.22
+# python-jose[cryptography]>=3.3   # JWT auth
+# psycopg2-binary>=2.9              # Postgres support
