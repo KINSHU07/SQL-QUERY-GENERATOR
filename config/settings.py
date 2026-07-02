@@ -13,9 +13,17 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote_plus
 
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env (project root) into os.environ BEFORE anything below reads it.
+# Without this, os.getenv() calls throughout this file silently fall back
+# to their defaults even when a real .env file exists, because nothing
+# ever puts its contents into the process environment.
+load_dotenv(BASE_DIR / ".env")
 
 
 def _env(name: str, default: str | None = None) -> str | None:
@@ -59,10 +67,17 @@ class MySQLSettings:
 
     @property
     def sqlalchemy_url(self) -> str:
-        return (
-            f"mysql+{self.driver}://{self.user}:{self.password}"
-            f"@{self.host}:{self.port}/{self.database}"
-        )
+        # Username/password are URL-encoded because credentials can
+        # legitimately contain characters that are reserved in URL syntax
+        # (e.g. '@', ':', '/'). Without this, a password like
+        # "Kinshu@2828" gets mis-parsed: the '@' is read as the
+        # user:password/host separator, silently truncating the password
+        # and corrupting the host -- which then fails auth in a way that's
+        # easy to mistake for "wrong password" when it's actually
+        # "malformed URL".
+        user = quote_plus(self.user)
+        password = quote_plus(self.password)
+        return f"mysql+{self.driver}://{user}:{password}@{self.host}:{self.port}/{self.database}"
 
 
 @dataclass(frozen=True)
