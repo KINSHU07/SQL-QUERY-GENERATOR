@@ -39,7 +39,12 @@ class SchemaEmbedder:
 
     _instance: "SchemaEmbedder | None" = None
 
-    API_URL_TEMPLATE = "https://api-inference.huggingface.co/pipeline/feature-extraction/{model}"
+    # HuggingFace deprecated api-inference.huggingface.co in favor of
+    # router.huggingface.co (mid-2025) as part of consolidating all
+    # inference traffic -- including the free hf-inference provider --
+    # behind a single router. Using the old host now fails outright
+    # (DNS/routing error), not just a redirect.
+    API_URL_TEMPLATE = "https://router.huggingface.co/hf-inference/models/{model}/pipeline/feature-extraction"
 
     def __init__(self, model_name: str | None = None, api_token: str | None = None) -> None:
         self.model_name = model_name or settings.embedding.model_name

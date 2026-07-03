@@ -74,6 +74,22 @@ def test_embed_calls_inference_api_and_returns_normalized_vectors(monkeypatch):
     assert payload["options"]["wait_for_model"] is True
 
 
+def test_uses_current_router_endpoint_not_deprecated_host():
+    """Regression test: HuggingFace deprecated api-inference.huggingface.co
+    in favor of router.huggingface.co. Using the old host now fails
+    outright (DNS/routing error, discovered via a real failed run against
+    a live MySQL database), not just a slower redirect. This test pins
+    the correct host so an accidental revert is caught immediately
+    instead of silently breaking every real (non-mocked) run.
+    """
+    embedder = SchemaEmbedder(model_name="sentence-transformers/all-MiniLM-L6-v2", api_token="fake-token")
+    assert embedder._url == (
+        "https://router.huggingface.co/hf-inference/models/"
+        "sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
+    )
+    assert "api-inference.huggingface.co" not in embedder._url
+
+
 def test_embed_one_returns_single_vector(monkeypatch):
     def fake_post(self, url, json, timeout):
         return _FakeResponse(200, json_data=[1.0, 0.0, 0.0])
